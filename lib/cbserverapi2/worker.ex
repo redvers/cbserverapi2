@@ -10,18 +10,18 @@ defmodule Cbserverapi2.Worker do
   end
 
 
-  def start_link(key, callback) do
-    GenServer.start_link(__MODULE__, {key, callback}, name: String.to_atom(key))
+  def start_link(key, callback, credscallback) do
+    GenServer.start_link(__MODULE__, {key, callback, credscallback}, name: String.to_atom(key))
   end
 
-  def init({key, callback}) do
-    creds = Application.get_env(:cbserverapi2, :creds)
+  def init({key, callback, credscallback}) do
+    creds = credscallback.().value
     {:ok, pid} = Cbserverapi2.Records.amqp_params_network(
       username: creds[:username],
       password: creds[:password],
       host: String.to_char_list(creds[:hostname]),
       virtual_host: "/",
-      port: creds[:port],
+      port: String.to_integer(creds[:port]),
       heartbeat: 0
       ) |> :amqp_connection.start
 
