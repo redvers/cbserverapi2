@@ -15,7 +15,7 @@ defmodule Cbserverapi2.Worker do
   end
 
   def init({key, callback, credscallback}) do
-    creds = credscallback.().value
+    creds = credscallback.()
     {:ok, pid} = Cbserverapi2.Records.amqp_params_network(
       username: creds[:username],
       password: creds[:password],
@@ -29,7 +29,7 @@ defmodule Cbserverapi2.Worker do
     queue_declare_ok(queue: queue) = :amqp_channel.call channel, queue_declare(auto_delete: true)
     stuff = queue_bind_ok() = :amqp_channel.call channel, queue_bind(queue: queue, exchange: "api.events", routing_key: key)
 
-    sub = basic_consume(queue: queue)
+    sub = basic_consume(queue: queue, no_ack: true)
     tag = :amqp_channel.call(channel, sub)
 
     Process.link(pid)
